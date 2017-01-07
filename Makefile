@@ -67,6 +67,7 @@ installed_target_libs := \
 runtime_rlibs := \
 	$(installed_target_libs)/libcore.rlib \
 	$(installed_target_libs)/liballoc.rlib \
+	$(installed_target_libs)/libstd_unicode.rlib \
 	$(installed_target_libs)/librustc_unicode.rlib \
 	$(installed_target_libs)/libcollections.rlib
 
