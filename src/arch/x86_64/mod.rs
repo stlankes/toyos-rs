@@ -4,3 +4,4 @@ pub mod pci;
 
 pub mod vga;
 pub mod interrupts;
+pub mod cpuid;
