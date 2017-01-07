@@ -6,7 +6,7 @@
 extern "C" fn eh_personality() {
 }
 
-#[lang = "panic_fmt"]
+#[lang = "panic_fmt"] #[no_mangle]
 extern "C" fn panic_fmt(
     args: ::core::fmt::Arguments, file: &str, line: usize)
     -> !
