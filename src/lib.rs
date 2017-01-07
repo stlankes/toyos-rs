@@ -24,7 +24,7 @@ mod runtime_glue;
 mod heap;
 mod arch;
 mod console;
-
+mod cpuid;
 
 #[no_mangle]
 pub extern "C" fn rust_main() {
@@ -51,6 +51,9 @@ pub extern "C" fn rust_main() {
     for function in arch::pci::functions() {
         println!("{}", function);
     }
+
+    cpuid::cpu_init();
+    cpuid::print_infos();
 
     println!("Running.");
 
