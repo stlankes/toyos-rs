@@ -1,23 +1,20 @@
-;;; Based on http://blog.phil-opp.com/rust-os/multiboot-kernel.html
+;;; Based on https://github.com/RWTH-OS/eduOS
 ;;;
-;;; This is our Multiboot 2 header, which Grub uses to find our kernel code
+;;; This is our Multiboot 1 header, which Grub uses to find our kernel code
 ;;; and load it into memory.
 
-MULTIBOOT_MAGIC equ 0xe85250d6        ; Magic number for multiboot 2.
-ARCHITECTURE    equ 0                 ; Protected mode i386 architecture.
-
 section .multiboot_header
+bits 32
 header_start:
-        dd MULTIBOOT_MAGIC            ; Magic.
-        dd ARCHITECTURE               ; Architecture.
-        dd header_end - header_start  ; Length.
-        ;; Checksum.
-        dd 0x100000000 - (MULTIBOOT_MAGIC + ARCHITECTURE + (header_end - header_start))
+        ; Multiboot macros to make a few lines more readable later
+        MULTIBOOT_PAGE_ALIGN	equ (1 << 0)
+        MULTIBOOT_MEMORY_INFO	equ (1 << 1)
+        MULTIBOOT_HEADER_MAGIC	equ 0x1BADB002
+        MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO
+        MULTIBOOT_CHECKSUM	equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
 
-        ;; Multiboot tags.
-
-        ;; End tag.
-        dw 0                          ; Type.
-        dw 0                          ; Flags.
-        dd 8                          ; Size.
-header_end:
+        ; This is the GRUB Multiboot header. A boot signature
+        dd MULTIBOOT_HEADER_MAGIC
+        dd MULTIBOOT_HEADER_FLAGS
+        dd MULTIBOOT_CHECKSUM
+        dd 0, 0, 0, 0, 0 ; address fields

@@ -4,8 +4,7 @@ arch ?= x86_64
 target ?= $(arch)-unknown-none-gnu
 
 rust_os := target/$(target)/debug/libtoyos.a
-kernel := build/kernel-$(arch).bin
-iso := build/os-$(arch).iso
+kernel := build/kernel-$(arch)
 
 linker_script := src/arch/$(arch)/linker.ld
 grub_cfg := src/arch/$(arch)/grub.cfg
@@ -14,9 +13,15 @@ assembly_source_files := $(wildcard src/arch/$(arch)/*.asm)
 assembly_object_files := $(patsubst src/arch/$(arch)/%.asm, \
 	build/arch/$(arch)/%.o, $(assembly_source_files))
 
-.PHONY: all fmt clean run debug iso cargo
+crossprefix :=
+objcopy_for_target := $(crossprefix)objcopy
+strip_debug := --strip-debug
+keep_debug := --only-keep-debug
+output_format := -O elf32-i386
 
-all: $(kernel)
+.PHONY: all fmt clean run debug cargo
+
+all: $(kernel).elf
 
 fmt:
 	rustfmt --write-mode overwrite src/lib.rs
@@ -24,27 +29,22 @@ fmt:
 clean:
 	rm -rf build target
 
-run: $(iso)
-	@echo QEMU $(iso)
-	@qemu-system-x86_64 -hda $(iso) -serial stdio
+run: $(kernel).elf
+	@echo QEMU $(kernel).elf
+	@qemu-system-x86_64 -kernel $(kernel).elf -serial stdio
 
-debug: $(iso)
-	@echo QEMU -d int $(iso)
-	@qemu-system-x86_64 -hda $(iso) -d int -no-reboot -serial stdio
+debug: $(kernel).elf
+	@echo QEMU -d int $(kernel).elf
+	@qemu-system-x86_64 -kernel $(kernel).elf -d int -no-reboot -serial stdio
 
-$(iso): $(kernel) $(grub_cfg)
-	@echo ISO $(iso)
-	@mkdir -p build/isofiles/boot/grub
-	@cp $(kernel) build/isofiles/boot/kernel.bin
-	@cp $(grub_cfg) build/isofiles/boot/grub
-	@grub-mkrescue /usr/lib/grub/i386-pc -o $(iso) build/isofiles \
-		2> /dev/null
-	@rm -r build/isofiles
-
-$(kernel): cargo $(assembly_object_files) $(linker_script)
-	@echo LD $(kernel)
-	@ld -n --gc-sections -T $(linker_script) -o $(kernel) \
+$(kernel).elf: cargo $(assembly_object_files) $(linker_script)
+	@echo LD $(kernel).elf
+	@ld -n --gc-sections -T $(linker_script) -o $(kernel).elf \
 		$(assembly_object_files) $(rust_os)
+	@echo OBJCOPY $(kernel).sym
+	@$(objcopy_for_target) $(keep_debug) $(kernel).elf $(kernel).sym
+	@echo OBJCOPY $(kernel).elf
+	@$(objcopy_for_target) $(strip_debug) $(output_format) $(kernel).elf
 
 cargo:
 	@echo CARGO

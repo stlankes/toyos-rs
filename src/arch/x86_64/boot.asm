@@ -50,7 +50,7 @@ error:
 
 ;;; Make sure we were loaded by multiboot.
 test_multiboot:
-        cmp eax, 0x36d76289     ; Did multiboot put a magic value in eax?
+        cmp eax, 0x2BADB002     ; Did multiboot put a magic value in eax?
         jne .no_multiboot
         ret
 .no_multiboot:
